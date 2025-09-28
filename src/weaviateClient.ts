@@ -1,11 +1,12 @@
-import weaviate, { WeaviateClient } from "weaviate-client";
 import dotenv from 'dotenv';
+import weaviate, {WeaviateClient} from "weaviate-client";
+import {WEAVIATE_API_KEY, WEAVIATE_HOST} from "./config.js";
 
-dotenv.config({ path: '.env.local' });
-dotenv.config({ quiet: true });
+dotenv.config({path: '.env.local'});
+dotenv.config({quiet: true});
 
-const weaviateUrl: string = process.env.WEAVIATE_URL as string;
-const weaviateApiKey: string = process.env.WEAVIATE_API_KEY as string;
+const weaviateUrl: string = WEAVIATE_HOST as string;
+const weaviateApiKey: string = WEAVIATE_API_KEY as string;
 
 const client: WeaviateClient = await weaviate.connectToWeaviateCloud(
     weaviateUrl, // ex: "https://abcd.weaviate.network"
