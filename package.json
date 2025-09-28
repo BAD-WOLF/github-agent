@@ -1,0 +1,14 @@
+{
+  "type": "module",
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "typescript": "^5.9.2",
+    "weaviate-client": "^3.9.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc && node dist/weaviateClient.js",
+    "test": "tsc && node dist/test/test.js",
+    "start": "node dist/weaviateClient.js"
+  }
+}
