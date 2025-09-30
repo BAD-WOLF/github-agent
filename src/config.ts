@@ -1,6 +1,22 @@
 import dotenv from "dotenv";
+import fs from 'fs'
+import path from 'path'
+import {fileURLToPath} from "url";
 
-dotenv.config({ path: '.env.local' });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const agentRoot: string = path.resolve(__dirname, "..");
+
+const envFiles: string[] = [".env.local", ".env"];
+
+for (const file of envFiles) {
+    const fullPath: string = path.join(agentRoot, file);
+    if (fs.existsSync(fullPath)) {
+        dotenv.config({path: fullPath});
+        break;
+    }
+}
+
 dotenv.config({ quiet: true });
 
 function mustGet(key: string): string {

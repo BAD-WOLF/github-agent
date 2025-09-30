@@ -2,6 +2,7 @@
   "type": "module",
   "dependencies": {
     "dotenv": "^17.2.2",
+    "ignore": "^7.0.5",
     "openai": "^5.23.1",
     "tiktoken": "^1.0.22",
     "typescript": "^5.9.2",
