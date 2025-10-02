@@ -2,7 +2,7 @@ import type {Dirent} from 'fs';
 import fs from "fs/promises";
 import ignore from 'ignore'
 import path from "path";
-import {CollectionConfig} from 'weaviate-client'
+import {CollectionConfig, vectors} from 'weaviate-client'
 import {chunkTextByTokens} from "./chunker.js";
 import {BATCH_SIZE} from "./config.js";
 import {getEmbedding} from "./embed.js";
@@ -22,7 +22,7 @@ async function ensureSchema(): Promise<void> {
         await client.collections.create({
             name: "Document",
             description: "Indexed code/documentation snippets",
-            vectorizers: [], // implicit "none", because we will pass vectors manually
+            vectorizers: vectors.selfProvided(), // implicit selfProvided, because we will pass vectors manually
             properties: [
                 {name: "text", dataType: "text"},
                 {name: "repo", dataType: "text"},
@@ -39,7 +39,7 @@ async function ensureSchema(): Promise<void> {
 // Indexes multiple objects in batch
 async function indexBatch(objs: {
     properties: { text: string; repo: string; path: string; chunk_index: number };
-    vector: number[];
+    vectors: number[];
 }[]): Promise<void> {
     try {
         await client.collections.get("Document").data.insertMany(objs);
@@ -65,7 +65,7 @@ async function indexFile(filePath: string, repoName: string, batch: any[]): Prom
                 path: filePath,
                 chunk_index: i,
             },
-            vector,
+            vectors: vector,
         });
 
         if (batch.length >= BATCH_SIZE) {
