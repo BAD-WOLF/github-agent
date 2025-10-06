@@ -8,7 +8,7 @@ import client from "./weaviateClient.js";
 
 const octokit: any = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
-export async function handleIssueEvent(payload: any, aiModel: number): Promise<void> {
+export async function handleIssueEvent(payload: any, aiModel: number = 1): Promise<void> {
     // ---- robust event-type detection ----
     const hasDiscussion = !!payload.discussion;
     const hasIssue = !!payload.issue;
