@@ -2,22 +2,22 @@ import { Octokit } from "@octokit/rest";
 import gepetoResponse from './AiModel/gepeto.js';
 import weaviateAgentResponse from './AiModel/weaviateAgents.js';
 import { Collection, WeaviateReturn } from 'weaviate-client';
-import { MODE } from "./config.js";
+import {GITHUB_TOKEN, MODE} from "./config.js";
 import { getEmbedding } from "./embed.js";
 import client from "./weaviateClient.js";
 
-const octokit: any = new Octokit({ auth: process.env.GITHUB_TOKEN });
+const octokit: any = new Octokit({ auth: GITHUB_TOKEN });
 
 export async function handleIssueEvent(payload: any, aiModel: number): Promise<void> {
     // ---- robust event-type detection ----
-    const hasDiscussion = !!payload.discussion;
-    const hasIssue = !!payload.issue;
-    const hasComment = !!payload.comment;
+    const hasDiscussion: boolean = !!payload.discussion;
+    const hasIssue: boolean = !!payload.issue;
+    const hasComment: boolean = !!payload.comment;
 
-    const isDiscussionCreated = hasDiscussion && !hasComment; // new discussion root
-    const isIssueCreated = hasIssue && !hasComment; // new issue root
-    const isDiscussionComment = hasComment && hasDiscussion; // comment inside a discussion
-    const isIssueComment = hasComment && hasIssue; // comment inside an issue
+    const isDiscussionCreated: boolean = hasDiscussion && !hasComment; // new discussion root
+    const isIssueCreated: boolean = hasIssue && !hasComment; // new issue root
+    const isDiscussionComment: boolean = hasComment && hasDiscussion; // comment inside a discussion
+    const isIssueComment: boolean = hasComment && hasIssue; // comment inside an issue
 
     // ---- owner / repo parsing (single place) ----
     const fullRepo: string | undefined = payload.repository?.full_name;
@@ -25,7 +25,7 @@ export async function handleIssueEvent(payload: any, aiModel: number): Promise<v
         console.warn("Repository information missing from payload; ignoring.");
         return;
     }
-    const [owner, repoName] = fullRepo.split("/");
+    const [owner, repoName]: string[] = fullRepo.split("/");
     if (!owner || !repoName) {
         console.warn("Invalid repository fullname:", fullRepo);
         return;
@@ -63,13 +63,13 @@ export async function handleIssueEvent(payload: any, aiModel: number): Promise<v
     }
 
     // For comments only: respond only if bot was mentioned
-    const shouldRequireMention = isDiscussionComment || isIssueComment;
+    const shouldRequireMention: boolean = isDiscussionComment || isIssueComment;
     if (shouldRequireMention && !text.includes("@BAD-WOLF")) {
         console.log("Comment does not mention @BAD-WOLF — ignoring.");
         return;
     }
 
-    const contextTarget = isDiscussionCreated ? `discussion#${discussionNumber}` :
+    const contextTarget: string = isDiscussionCreated ? `discussion#${discussionNumber}` :
         isIssueCreated ? `issue#${issueNumber}` :
             isDiscussionComment ? `discussion#${discussionNumber} comment#${commentId}` :
                 `issue#${issueNumber} comment#${commentId}`;
@@ -86,7 +86,7 @@ export async function handleIssueEvent(payload: any, aiModel: number): Promise<v
     }
 
     // ---- retrieve context from Weaviate ----
-    let docs = "";
+    let docs: string = "";
     try {
         const collection: Collection<undefined, "Document", undefined> = client.collections.use("Document");
         const res: WeaviateReturn<undefined, undefined> = await collection.query.nearVector(qVec, {
@@ -94,7 +94,7 @@ export async function handleIssueEvent(payload: any, aiModel: number): Promise<v
             returnMetadata: ["distance"],
             limit: 6
         });
-        docs = (res.objects || []).map((d: any) => d.properties?.text || "").filter(Boolean).join("\n\n---\n\n");
+        docs = (res.objects || []).map((d: any): any => d.properties?.text || "").filter(Boolean).join("\n\n---\n\n");
     } catch (err) {
         console.error("Error fetching context from Weaviate:", err);
         docs = "";
@@ -114,7 +114,7 @@ export async function handleIssueEvent(payload: any, aiModel: number): Promise<v
     }
 
     // ---- post or draft ----
-    const body = `🤖 Automatic response:\n\n${reply}\n\n*Generated via Weaviate RAG*`;
+    const body: string = `🤖 Automatic response:\n\n${reply}\n\n*Generated via Weaviate RAG*`;
 
     if (MODE === "draft") {
         console.log("DRAFT mode — would post to:", { owner, repoName, discussionNumber, issueNumber, commentId });
@@ -163,7 +163,7 @@ export async function handleIssueEvent(payload: any, aiModel: number): Promise<v
                 return;
             }
 
-            const mutation = `
+            const mutation: string = `
               mutation AddDiscussionComment($input: AddDiscussionCommentInput!) {
                 addDiscussionComment(input: $input) {
                   comment {
@@ -175,7 +175,7 @@ export async function handleIssueEvent(payload: any, aiModel: number): Promise<v
               }
             `;
 
-            const variables = {
+            const variables: { input: { discussionId: string; replyToId: string; body: string } } = {
                 input: {
                     discussionId: discussionNodeId,
                     replyToId: commentNodeId,
@@ -184,7 +184,7 @@ export async function handleIssueEvent(payload: any, aiModel: number): Promise<v
             };
 
             console.log("Calling GraphQL: addDiscussionComment (reply) with discussionId and replyToId");
-            const res = await octokit.request("POST /graphql", {
+            const res: any = await octokit.request("POST /graphql", {
                 query: mutation,
                 variables
             });
