@@ -8,7 +8,7 @@
 
 This submodule (`github-agent`) is a Node.js workflow that:
 
-1. Receives GitHub events (Issues and Discussions) via webhook.
+1. Receives GitHub events (Issues and Discussions) via webhook or github actions.
 2. Splits texts into chunks and generates embeddings with OpenAI.
 3. Indexes the embeddings in **Weaviate**.
 4. Retrieves relevant context using **RAG** (Retrieve + Generate).
